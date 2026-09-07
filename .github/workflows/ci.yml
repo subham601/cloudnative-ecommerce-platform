@@ -198,7 +198,7 @@ jobs:
       - name: Build Docker image
         uses: docker/build-push-action@v5
         with:
-          context: .
+          context: ${{ matrix.service.name == 'frontend' && 'frontend' || '.' }}
           file: ${{ matrix.service.path }}/Dockerfile
           push: false
           load: true
