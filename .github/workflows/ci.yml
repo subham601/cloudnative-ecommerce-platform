@@ -1,4 +1,3 @@
-```yaml
 name: DevSecOps CI Pipeline
 
 on:
@@ -14,7 +13,6 @@ on:
       - 'services/**'
       - 'frontend/**'
 
-# Global permissions for GitHub Security / SARIF uploads
 permissions:
   contents: read
   security-events: write
@@ -76,12 +74,10 @@ jobs:
         run: pip install safety
 
       - name: Scan Python dependencies
-        id: safety-scan
         run: |
           if [ -f "services/common/requirements.txt" ]; then
             echo "Scanning Python dependencies..."
             safety check --file services/common/requirements.txt --json > safety-report.json || true
-            echo "safety_exit_code=$?" >> $GITHUB_OUTPUT
           fi
 
       - name: Upload safety report
@@ -169,28 +165,39 @@ jobs:
     runs-on: ubuntu-latest
     needs: [semgrep, dependency-check, frontend-build]
 
-    # Required for uploading Trivy SARIF results to GitHub Security
     permissions:
       contents: read
       security-events: write
 
     strategy:
       matrix:
-        service: [
-          { name: 'frontend', path: 'frontend' },
-          { name: 'cart-service', path: 'services/cart-service' },
-          { name: 'catalog-service', path: 'services/catalog-service' },
-          { name: 'logistics-service', path: 'services/logistics-service' },
-          { name: 'notification-service', path: 'services/notification-service' },
-          { name: 'order-processing-service', path: 'services/order-processing-service' },
-          { name: 'order-taking-service', path: 'services/order-taking-service' },
-          { name: 'payment-service', path: 'services/payment-service' },
-          { name: 'recommendation-service', path: 'services/recommendation-service' },
-          { name: 'search-service', path: 'services/search-service' },
-          { name: 'user-service', path: 'services/user-service' },
-          { name: 'warehouse-service', path: 'services/warehouse-service' },
-          { name: 'wishlist-service', path: 'services/wishlist-service' }
-        ]
+        service:
+          - name: frontend
+            path: frontend
+          - name: cart-service
+            path: services/cart-service
+          - name: catalog-service
+            path: services/catalog-service
+          - name: logistics-service
+            path: services/logistics-service
+          - name: notification-service
+            path: services/notification-service
+          - name: order-processing-service
+            path: services/order-processing-service
+          - name: order-taking-service
+            path: services/order-taking-service
+          - name: payment-service
+            path: services/payment-service
+          - name: recommendation-service
+            path: services/recommendation-service
+          - name: search-service
+            path: services/search-service
+          - name: user-service
+            path: services/user-service
+          - name: warehouse-service
+            path: services/warehouse-service
+          - name: wishlist-service
+            path: services/wishlist-service
       fail-fast: false
 
     steps:
@@ -229,21 +236,26 @@ jobs:
         uses: aquasecurity/trivy-action@master
         with:
           image-ref: ${{ secrets.DOCKERHUB_USERNAME }}/${{ matrix.service.name }}:${{ github.sha }}
-          format: 'sarif'
-          output: '${{ matrix.service.name }}-trivy.sarif'
-          severity: 'CRITICAL,HIGH'
+          format: sarif
+          output: ${{ matrix.service.name }}-trivy.sarif
+          severity: CRITICAL,HIGH
 
       - name: Upload Trivy results to GitHub Security
-        if: hashFiles(format('{0}-trivy.sarif', matrix.service.name)) != ''
+        if: always() && hashFiles(format('{0}-trivy.sarif', matrix.service.name)) != ''
         uses: github/codeql-action/upload-sarif@v4
         with:
-          sarif_file: '${{ matrix.service.name }}-trivy.sarif'
+          sarif_file: ${{ matrix.service.name }}-trivy.sarif
           category: trivy-${{ matrix.service.name }}
 
   ci-summary:
     name: CI Pipeline Summary
     runs-on: ubuntu-latest
-    needs: [semgrep, dependency-check, backend-tests, frontend-build, docker-build]
+    needs:
+      - semgrep
+      - dependency-check
+      - backend-tests
+      - frontend-build
+      - docker-build
     if: always()
 
     steps:
@@ -258,23 +270,19 @@ jobs:
           echo "::endgroup::"
 
       - name: Fail if critical checks failed
-        if: |
-          needs.docker-build.result == 'failure'
+        if: needs.docker-build.result == 'failure'
         run: |
-          echo "⚠️ Docker builds failed!"
+          echo "Docker builds failed!"
           exit 1
 
       - name: Success Message
         if: needs.docker-build.result == 'success'
         run: |
-          echo "✅ All CI checks passed!"
-          echo "✅ All 13 Docker images built and pushed to Docker Hub!"
+          echo "All CI checks passed!"
+          echo "All 13 Docker images built and pushed to Docker Hub!"
           echo ""
           echo "Images available at:"
-          echo "  docker pull ${{ secrets.DOCKERHUB_USERNAME }}/frontend:latest"
-          echo "  docker pull ${{ secrets.DOCKERHUB_USERNAME }}/cart-service:latest"
-          echo "  docker pull ${{ secrets.DOCKERHUB_USERNAME }}/catalog-service:latest"
-          echo "  ... (10 more services)"
-          echo ""
-          echo "View on Docker Hub: https://hub.docker.com/u/${{ secrets.DOCKERHUB_USERNAME }}"
-```
+          echo "docker pull ${{ secrets.DOCKERHUB_USERNAME }}/frontend:latest"
+          echo "docker pull ${{ secrets.DOCKERHUB_USERNAME }}/cart-service:latest"
+          echo "docker pull ${{ secrets.DOCKERHUB_USERNAME }}/catalog-service:latest"
+          echo "... (10 more services)"
