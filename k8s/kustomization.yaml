@@ -1,4 +1,5 @@
 resources:
   - namespace.yaml
   - apps.yaml
+  - frontend.yaml
   - traffic-generator.yaml
