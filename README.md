@@ -1,4 +1,4 @@
-# Ecommerce Microservices Platform — DevSecOps, Kubernetes, Istio & GitOps
+# Ecommerce Microservices Platform — DevOps, DevSecOps, Kubernetes, Istio & GitOps
 
 A production-style e-commerce microservices platform designed to demonstrate modern **DevOps, DevSecOps, Kubernetes, GitOps, Service Mesh, Security, Resilience and Observability** practices.
 
