@@ -10,7 +10,7 @@ The application contains multiple backend microservices and a frontend deployed 
 
 ```text
                          APPLICATION REPOSITORY
-                    ecommerce-microservices-istio
+                    cloudnative-ecommerce-platform
                                 │
                                 │ git push
                                 ▼
@@ -798,7 +798,7 @@ The Istio Gateway provides path-based routing.
 # Project Structure
 
 ```text
-ecommerce-microservices-istio/
+cloudnative-ecommerce-platform/
 │
 ├── .github/
 │   └── workflows/
