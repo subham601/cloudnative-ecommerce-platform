@@ -1,0 +1,64 @@
+---
+# Enable mTLS for entire namespace
+apiVersion: security.istio.io/v1beta1
+kind: PeerAuthentication
+metadata:
+  namespace: ecommerce
+  name: default
+spec:
+  mtls:
+    mode: STRICT
+
+---
+# Authorization Policy - Deny all by default
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  namespace: ecommerce
+  name: default-deny
+spec:
+  {}
+
+---
+# Allow traffic from ingress gateway to frontend
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  namespace: ecommerce
+  name: allow-frontend-ingress
+spec:
+  selector:
+    matchLabels:
+      app: frontend
+  rules:
+  - from:
+    - source:
+        principals: ["cluster.local/ns/istio-system/sa/istio-ingressgateway-service-account"]
+    to:
+    - operation:
+        methods: ["GET", "POST"]
+        ports: ["8080"]
+
+---
+# Allow frontend to call backend services
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  namespace: ecommerce
+  name: allow-frontend-to-backend
+spec:
+  selector:
+    matchLabels:
+      app: cart-service
+  rules:
+  - from:
+    - source:
+        principals: ["cluster.local/ns/ecommerce/sa/frontend"]
+    to:
+    - operation:
+        methods: ["POST"]
+        ports: ["8080"]
+
+---
+# Similar policies for all services
+# (repeat for each service)

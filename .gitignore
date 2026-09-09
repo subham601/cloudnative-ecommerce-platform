@@ -5,3 +5,10 @@ __pycache__/
 frontend/node_modules/
 frontend/dist/
 istio-1.30.3/bin/istioctl
+
+# Local binaries
+kubeseal-0.24.0-linux-amd64.tar.gz
+
+# Kubernetes plain secrets
+secret.yaml
+docker-secret.yaml

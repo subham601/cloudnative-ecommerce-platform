@@ -1,0 +1,24 @@
+apiVersion: audit.k8s.io/v1
+kind: Policy
+rules:
+# Log all requests at Metadata level
+- level: Metadata
+  omitStages:
+  - RequestReceived
+
+# Log pod exec at RequestResponse level
+- level: RequestResponse
+  verbs: ["create"]
+  resources:
+  - group: ""
+    resources: ["pods/exec", "pods/attach"]
+
+# Log secret access
+- level: RequestResponse
+  verbs: ["get", "list"]
+  resources:
+  - group: ""
+    resources: ["secrets"]
+
+# Default log level
+- level: Metadata
